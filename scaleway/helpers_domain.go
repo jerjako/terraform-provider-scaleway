@@ -2,6 +2,7 @@ package scaleway
 
 import (
 	"net"
+	"strings"
 
 	domain "github.com/scaleway/scaleway-sdk-go/api/domain/v2beta1"
 )
@@ -11,6 +12,18 @@ func domainAPI(m interface{}) *domain.API {
 	meta := m.(*Meta)
 
 	return domain.NewAPI(meta.scwClient)
+}
+
+func flattenDomainData(data string, recordType domain.RecordType) interface{} {
+	switch recordType {
+	case domain.RecordTypeMX: // API return this format: "{priority} {data}"
+		dataSplitted := strings.SplitN(data, " ", 2)
+		if len(dataSplitted) == 2 {
+			return dataSplitted[1]
+		}
+	}
+
+	return data
 }
 
 func flattenDomainGeoIP(config *domain.RecordGeoIPConfig) interface{} {

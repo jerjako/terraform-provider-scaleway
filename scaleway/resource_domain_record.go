@@ -237,11 +237,7 @@ func resourceScalewayDomainRecordCreate(ctx context.Context, d *schema.ResourceD
 		DNSZone: dnsZone,
 		Changes: []*domain.RecordChange{
 			{
-				Set: &domain.RecordChangeSet{
-					IDFields: &domain.RecordIdentifier{
-						Name: d.Get("name").(string),
-						Type: domain.RecordType(d.Get("type").(string)),
-					},
+				Add: &domain.RecordChangeAdd{
 					Records: []*domain.Record{record},
 				},
 			},
@@ -274,8 +270,10 @@ func resourceScalewayDomainRecordRead(ctx context.Context, d *schema.ResourceDat
 
 	var record *domain.Record
 	for _, r := range res.Records {
-		record = r
-		break
+		if flattenDomainData(r.Data, r.Type).(string) == d.Get("data").(string) {
+			record = r
+			break
+		}
 	}
 
 	if record == nil {
@@ -284,7 +282,7 @@ func resourceScalewayDomainRecordRead(ctx context.Context, d *schema.ResourceDat
 	}
 
 	d.SetId(record.ID)
-	_ = d.Set("data", record.Data)
+	_ = d.Set("data", flattenDomainData(record.Data, record.Type))
 	_ = d.Set("ttl", record.TTL)
 	_ = d.Set("priority", record.Priority)
 	_ = d.Set("geo_ip", flattenDomainGeoIP(record.GeoIPConfig))
@@ -337,16 +335,13 @@ func resourceScalewayDomainRecordUpdate(ctx context.Context, d *schema.ResourceD
 func resourceScalewayDomainRecordDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	domainAPI := domainAPI(m)
 
+	id := d.Id()
 	_, err := domainAPI.UpdateDNSZoneRecords(&domain.UpdateDNSZoneRecordsRequest{
 		DNSZone: d.Get("dns_zone").(string),
 		Changes: []*domain.RecordChange{
 			{
 				Delete: &domain.RecordChangeDelete{
-					IDFields: &domain.RecordIdentifier{
-						Name: d.Get("name").(string),
-						Type: domain.RecordType(d.Get("type").(string)),
-						Data: expandStringPtr(d.Get("data")),
-					},
+					ID: &id,
 				},
 			},
 		},
