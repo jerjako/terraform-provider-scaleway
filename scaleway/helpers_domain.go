@@ -3,8 +3,13 @@ package scaleway
 import (
 	"net"
 	"strings"
+	"time"
 
 	domain "github.com/scaleway/scaleway-sdk-go/api/domain/v2beta1"
+)
+
+const (
+	defaultDomainRecordTimeout = 30 * time.Second
 )
 
 // domainAPI returns a new domain API.

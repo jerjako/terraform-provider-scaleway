@@ -2,6 +2,8 @@ package scaleway
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -16,6 +18,9 @@ func resourceScalewayDomainRecord() *schema.Resource {
 		ReadContext:   resourceScalewayDomainRecordRead,
 		UpdateContext: resourceScalewayDomainRecordUpdate,
 		DeleteContext: resourceScalewayDomainRecordDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Default: schema.DefaultTimeout(defaultDomainRecordTimeout),
+		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -96,7 +101,7 @@ func resourceScalewayDomainRecord() *schema.Resource {
 										Type:        schema.TypeList,
 										Optional:    true,
 										MinItems:    1,
-										Description: "List of countries (eg: FR for France, US for United States, GB for Great Britain...)",
+										Description: "List of countries (eg: FR for France, US for the United States, GB for Great Britain...)",
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: validation.StringLenBetween(2, 2),
@@ -114,7 +119,7 @@ func resourceScalewayDomainRecord() *schema.Resource {
 									},
 									"data": {
 										Type:        schema.TypeString,
-										Description: "The data of the matches result",
+										Description: "The data of the match result",
 										Required:    true,
 									},
 								},
@@ -155,7 +160,7 @@ func resourceScalewayDomainRecord() *schema.Resource {
 						"user_agent": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "User agent sended to the URL when checking",
+							Description: "User-agent used when checking the URL",
 						},
 						"strategy": {
 							Type:        schema.TypeString,
@@ -253,26 +258,55 @@ func resourceScalewayDomainRecordCreate(ctx context.Context, d *schema.ResourceD
 
 func resourceScalewayDomainRecordRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	domainAPI := domainAPI(m)
-
-	res, err := domainAPI.ListDNSZoneRecords(&domain.ListDNSZoneRecordsRequest{
-		DNSZone: d.Get("dns_zone").(string),
-		Name:    d.Get("name").(string),
-		Type:    domain.RecordType(d.Get("type").(string)),
-	}, scw.WithAllPages())
-
-	if err != nil {
-		if is404Error(err) {
-			d.SetId("")
-			return nil
-		}
-		return diag.FromErr(err)
-	}
-
 	var record *domain.Record
-	for _, r := range res.Records {
-		if flattenDomainData(r.Data, r.Type).(string) == d.Get("data").(string) {
-			record = r
-			break
+
+	if strings.Contains(d.Id(), "/") {
+		tab := strings.SplitN(d.Id(), "/", -1)
+		if len(tab) != 2 {
+			return diag.FromErr(fmt.Errorf("cant parse record id: %s", d.Id()))
+		}
+
+		dnsZone := tab[0]
+		id := tab[1]
+
+		res, err := domainAPI.ListDNSZoneRecords(&domain.ListDNSZoneRecordsRequest{
+			DNSZone: dnsZone,
+		}, scw.WithAllPages())
+
+		if err != nil {
+			if is404Error(err) {
+				d.SetId("")
+				return nil
+			}
+			return diag.FromErr(err)
+		}
+
+		for _, r := range res.Records {
+			if r.ID == id {
+				record = r
+				break
+			}
+		}
+	} else {
+		res, err := domainAPI.ListDNSZoneRecords(&domain.ListDNSZoneRecordsRequest{
+			DNSZone: d.Get("dns_zone").(string),
+			Name:    d.Get("name").(string),
+			Type:    domain.RecordType(d.Get("type").(string)),
+		}, scw.WithAllPages())
+
+		if err != nil {
+			if is404Error(err) {
+				d.SetId("")
+				return nil
+			}
+			return diag.FromErr(err)
+		}
+
+		for _, r := range res.Records {
+			if flattenDomainData(r.Data, r.Type).(string) == d.Get("data").(string) {
+				record = r
+				break
+			}
 		}
 	}
 
