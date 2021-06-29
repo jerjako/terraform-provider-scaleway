@@ -134,7 +134,7 @@ The following arguments are supported:
   
 - `priority` - (Optional, default: `0`) The priority of the record (mostly used with an `MX` record)
 
-**Dynamic records:** 
+**Dynamic records:**
 
 - `geo_ip` - (Optional) The Geo IP feature provides DNS resolution, based on the user’s geographical location. You can define a default IP that resolves if no Geo IP rule matches, and specify IPs for each geographical zone. [Documentation and usage example](https://www.scaleway.com/en/docs/scaleway-dns/#-Geo-IP-Records)
     - `matches` - (Required) The list of matches. *(Can be more than 1)*
@@ -163,7 +163,7 @@ The following arguments are supported:
 ## Multiple records
 
 Some record types can have multiple `data` with the same `name` (eg: `A`, `AAAA`, `MX`, `NS`...).  
-You can duplicate a resource `scaleway_domain_record` with the same `name`, the records will be added. 
+You can duplicate a resource `scaleway_domain_record` with the same `name`, the records will be added.
 
 Please note, some record (eg: `CNAME`, Multiple dynamic records of different types...) has to be unique.
 
