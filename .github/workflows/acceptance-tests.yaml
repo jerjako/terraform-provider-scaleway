@@ -12,7 +12,7 @@ jobs:
           - Account
           - AppleSilicon
           - Baremetal
-          - DomainRecord
+          # - DomainRecord # no cassette
           - Instance
           - Iot
           - K8S
