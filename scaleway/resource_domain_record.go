@@ -221,8 +221,8 @@ func resourceScalewayDomainRecord() *schema.Resource {
 	}
 }
 
-func resourceScalewayDomainRecordCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	domainAPI := domainAPI(m)
+func resourceScalewayDomainRecordCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	domainAPI := domainAPI(meta)
 
 	dnsZone := d.Get("dns_zone").(string)
 	geoIP, okGeoIP := d.GetOk("geo_ip")
@@ -253,11 +253,11 @@ func resourceScalewayDomainRecordCreate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	return resourceScalewayDomainRecordRead(ctx, d, m)
+	return resourceScalewayDomainRecordRead(ctx, d, meta)
 }
 
-func resourceScalewayDomainRecordRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	domainAPI := domainAPI(m)
+func resourceScalewayDomainRecordRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	domainAPI := domainAPI(meta)
 	var record *domain.Record
 
 	if strings.Contains(d.Id(), "/") {
@@ -327,10 +327,10 @@ func resourceScalewayDomainRecordRead(ctx context.Context, d *schema.ResourceDat
 	return nil
 }
 
-func resourceScalewayDomainRecordUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	domainAPI := domainAPI(m)
+func resourceScalewayDomainRecordUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	domainAPI := domainAPI(meta)
 
-	if d.HasChanges("data", "ttl", "priority", "geo_ip", "http_service", "weighted", "view") {
+	if d.HasChangesExcept("dns_zone", "keep_empty_zone", "name", "type") {
 		id := d.Id()
 
 		geoIP, okGeoIP := d.GetOk("geo_ip")
@@ -363,11 +363,11 @@ func resourceScalewayDomainRecordUpdate(ctx context.Context, d *schema.ResourceD
 		}
 	}
 
-	return resourceScalewayDomainRecordRead(ctx, d, m)
+	return resourceScalewayDomainRecordRead(ctx, d, meta)
 }
 
-func resourceScalewayDomainRecordDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	domainAPI := domainAPI(m)
+func resourceScalewayDomainRecordDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	domainAPI := domainAPI(meta)
 
 	id := d.Id()
 	_, err := domainAPI.UpdateDNSZoneRecords(&domain.UpdateDNSZoneRecordsRequest{
