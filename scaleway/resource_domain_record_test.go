@@ -176,7 +176,7 @@ func TestAccScalewayDomainRecord_GeoIP(t *testing.T) {
 
 	name := "tf_geo_ip"
 	recordType := "A"
-	data := "127.0.0.1"
+	data := "127.0.0.2"
 	ttl := 3600   // default value
 	priority := 0 // default value
 
@@ -277,7 +277,7 @@ func TestAccScalewayDomainRecord_HTTPService(t *testing.T) {
 
 	name := "tf_http_service"
 	recordType := "A"
-	data := "127.0.0.1"
+	data := "127.0.0.3"
 	ttl := 3600   // default value
 	priority := 0 // default value
 
@@ -369,7 +369,7 @@ func TestAccScalewayDomainRecord_View(t *testing.T) {
 
 	name := "tf_view"
 	recordType := "A"
-	data := "127.0.0.1"
+	data := "127.0.0.4"
 	ttl := 3600   // default value
 	priority := 0 // default value
 
@@ -466,7 +466,7 @@ func TestAccScalewayDomainRecord_Weighted(t *testing.T) {
 
 	name := "tf_weighted"
 	recordType := "A"
-	data := "127.0.0.1"
+	data := "127.0.0.5"
 	ttl := 3600   // default value
 	priority := 0 // default value
 
