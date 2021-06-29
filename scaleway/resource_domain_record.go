@@ -317,8 +317,8 @@ func resourceScalewayDomainRecordRead(ctx context.Context, d *schema.ResourceDat
 
 	d.SetId(record.ID)
 	_ = d.Set("data", flattenDomainData(record.Data, record.Type))
-	_ = d.Set("ttl", record.TTL)
-	_ = d.Set("priority", record.Priority)
+	_ = d.Set("ttl", int(record.TTL))
+	_ = d.Set("priority", int(record.Priority))
 	_ = d.Set("geo_ip", flattenDomainGeoIP(record.GeoIPConfig))
 	_ = d.Set("http_service", flattenDomainHTTPService(record.HTTPServiceConfig))
 	_ = d.Set("weighted", flattenDomainWeighted(record.WeightedConfig))
